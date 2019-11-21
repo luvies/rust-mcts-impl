@@ -1,0 +1,16 @@
+name: Rust CI
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          submodules: recursive
+      - name: Lint
+        run: cargo fmt -- --check --verbose
+      - name: Build
+        run: cargo build --verbose
