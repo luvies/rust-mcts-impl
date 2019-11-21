@@ -198,14 +198,13 @@ where
     }
 
     fn phase_expansion(&mut self, node_id: usize) -> usize {
-        if let Some(&mv) = self
+        match self
             .get_node_mut(node_id)
             .untried_mvs
             .choose(&mut rand::thread_rng())
         {
-            self.make_move(node_id, mv)
-        } else {
-            node_id
+            Some(&mv) => self.make_move(node_id, mv),
+            None => node_id,
         }
     }
 
@@ -222,10 +221,10 @@ where
         let mut current_node = self.get_node_mut(node_id);
         loop {
             current_node.update(winner);
-            if let Some(parent_node_id) = current_node.parent_node {
-                current_node = self.get_node_mut(parent_node_id);
-            } else {
-                break;
+
+            match current_node.parent_node {
+                Some(parent_node_id) => current_node = self.get_node_mut(parent_node_id),
+                None => break,
             }
         }
     }
@@ -241,7 +240,7 @@ where
 
     fn select_max_child<'a, F: FnMut(&'a Node<P, M, ME, S>) -> f64>(
         &'a self,
-        node: &Node<P, M, ME, S>,
+        node: &'a Node<P, M, ME, S>,
         mut selector: F,
     ) -> usize {
         let mut children = node
