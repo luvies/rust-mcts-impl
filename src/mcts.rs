@@ -180,7 +180,7 @@ where
 
     fn phase_selection(&self, node_id: usize, selection_pol: &SelectionPolicy) -> usize {
         let node = self.get_node(node_id);
-        if node.is_fully_expanded() || !node.has_children() {
+        if !node.is_fully_expanded() || !node.has_children() {
             node_id
         } else {
             let child_id = self.select_max_child(
