@@ -63,7 +63,7 @@ where
         self.visits += 1;
 
         if let Some(wnr) = winner {
-            if wnr == self.state.get_current_player() {
+            if wnr == self.state.get_prev_player() {
                 self.wins += 1;
             }
         }

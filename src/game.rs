@@ -22,4 +22,6 @@ where
     fn get_winner(&self) -> Option<P>;
     /// Returns the current player.
     fn get_current_player(&self) -> P;
+    /// Returns the previous player.
+    fn get_prev_player(&self) -> P;
 }

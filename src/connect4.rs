@@ -14,8 +14,15 @@ impl Player {
 
     pub fn next(self) -> Self {
         match self {
-            Self::Red => Player::Yellow,
-            Self::Yellow => Player::Red,
+            Self::Red => Self::Yellow,
+            Self::Yellow => Self::Red,
+        }
+    }
+
+    pub fn prev(self) -> Self {
+        match self {
+            Self::Yellow => Self::Red,
+            Self::Red => Self::Yellow,
         }
     }
 }
@@ -175,6 +182,10 @@ impl GameState<Player, Move, MoveError> for Game {
 
     fn get_current_player(&self) -> Player {
         self.turn
+    }
+
+    fn get_prev_player(&self) -> Player {
+        self.turn.prev()
     }
 }
 
