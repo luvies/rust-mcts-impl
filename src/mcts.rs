@@ -78,7 +78,7 @@ where
     S: GameState<P, M, ME>,
 {
     tree: Vec<Node<P, M, ME, S>>,
-    current_node_id: usize,
+    cur_node_id: usize,
     target_player: P,
 }
 
@@ -92,10 +92,10 @@ where
     pub fn new(target_player: P, orig_state: &S) -> Self {
         let mut mcts = Mcts {
             tree: vec![],
-            current_node_id: Default::default(),
+            cur_node_id: Default::default(),
             target_player,
         };
-        mcts.current_node_id = mcts.push_node(Node::new(None, None, orig_state.clone()));
+        mcts.cur_node_id = mcts.push_node(Node::new(None, None, orig_state.clone()));
         mcts
     }
 
@@ -115,7 +115,7 @@ where
         let start = Instant::now();
         let mut rounds = 0;
         while Instant::now() - start < compute_limit {
-            let mut node = self.phase_selection(self.current_node_id, selection_pol);
+            let mut node = self.phase_selection(self.cur_node_id, selection_pol);
             node = self.phase_expansion(node);
             let winner = self.phase_rollout(&self.get_node(node).state);
             self.phase_backprop(node, winner);
@@ -127,15 +127,9 @@ where
 
     // General helper fns.
 
-    fn push_node(&mut self, node: Node<P, M, ME, S>) -> usize {
-        let id = self.tree.len();
-        self.tree.push(node);
-        id
-    }
-
     fn update_move(&mut self, mv: M, for_target_player: bool) -> () {
         let tgt = self.target_player;
-        let node = self.get_node(self.current_node_id);
+        let node = self.get_cur_node();
 
         let target_is_current = tgt == node.state.get_current_player();
         if for_target_player && !target_is_current {
@@ -158,8 +152,8 @@ where
         }
 
         match next_id {
-            Some(child_id) => self.current_node_id = child_id,
-            None => self.current_node_id = self.make_move(self.current_node_id, mv),
+            Some(child_id) => self.cur_node_id = child_id,
+            None => self.cur_node_id = self.make_move(self.cur_node_id, mv),
         };
     }
 
@@ -176,6 +170,12 @@ where
         let child_id = self.push_node(Node::new(Some(mv), Some(node_id), state));
         self.get_node_mut(node_id).child_nodes.push(child_id);
         child_id
+    }
+
+    fn push_node(&mut self, node: Node<P, M, ME, S>) -> usize {
+        let id = self.tree.len();
+        self.tree.push(node);
+        id
     }
 
     // Phase fns.
@@ -232,7 +232,7 @@ where
     }
 
     fn phase_action_select(&self) -> M {
-        let child_id = self.select_max_child(self.get_node(self.current_node_id), |child| {
+        let child_id = self.select_max_child(self.get_cur_node(), |child| {
             (child.wins as f64) / (child.visits as f64)
         });
         self.get_node(child_id).mv.unwrap()
@@ -265,6 +265,10 @@ where
     }
 
     // Util fns.
+
+    fn get_cur_node(&self) -> &Node<P, M, ME, S> {
+        self.get_node(self.cur_node_id)
+    }
 
     fn get_node(&self, node_id: usize) -> &Node<P, M, ME, S> {
         &self.tree[node_id]
