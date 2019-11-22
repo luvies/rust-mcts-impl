@@ -1,6 +1,7 @@
 use crate::game::GameState;
 use std::fmt;
 
+/// The players available in connect 4.
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Player {
     Red,
@@ -8,10 +9,12 @@ pub enum Player {
 }
 
 impl Player {
+    /// Returns a vec containing all available players.
     pub fn all() -> Vec<Self> {
         vec![Self::Red, Self::Yellow]
     }
 
+    /// Returns the next player in the turn sequence.
     pub fn next(self) -> Self {
         match self {
             Self::Red => Self::Yellow,
@@ -19,6 +22,7 @@ impl Player {
         }
     }
 
+    /// Returns the previous player in the turn sequence.
     pub fn prev(self) -> Self {
         match self {
             Self::Yellow => Self::Red,
@@ -36,8 +40,11 @@ impl ToString for Player {
     }
 }
 
+/// The moves availabe in connect 4. This number references the column that the
+/// player is placing their next piece in.
 pub type Move = u8;
 
+/// The move errors possible in connect 4.
 #[derive(Clone, Copy)]
 pub enum MoveError {
     OutOfRange(Move),
@@ -57,6 +64,7 @@ const WIDTH: usize = 7;
 const HEIGHT: usize = 6;
 const CONNECT_LEN: usize = 4;
 
+/// The connect 4 game state.
 // TODO: Move to const generics.
 #[derive(Clone, Debug)]
 pub struct Game {
@@ -71,6 +79,7 @@ struct Point(usize, usize);
 struct PointDirection(i64, i64);
 
 impl Game {
+    /// Constructs a new connect 4 game state.
     pub fn new() -> Self {
         Game {
             turn: Player::Red,
@@ -79,6 +88,7 @@ impl Game {
         }
     }
 
+    /// Updates the stored winner from the current board position.
     fn update_winner_from(&mut self, col: usize, row: usize) -> () {
         if let Some(ply) = self.board[col][row] {
             for &dir in &[
@@ -88,6 +98,9 @@ impl Game {
                 PointDirection(-1, 1),
             ] {
                 let start = Point(col, row);
+
+                // Counts the number of pieces that are the same in the given
+                // direction and its reverse.
                 let count = 1
                     + self.count_line_from(start, dir, ply, false)
                     + self.count_line_from(start, dir, ply, true);
@@ -99,6 +112,7 @@ impl Game {
         }
     }
 
+    /// Counts the number of pieces that are the same from the given direction.
     fn count_line_from(&self, start: Point, dir: PointDirection, player: Player, rev: bool) -> u64 {
         let mut count = 0;
         for dist in 1..(CONNECT_LEN as i64) {
@@ -116,6 +130,8 @@ impl Game {
         count
     }
 
+    /// Gets a board on the board in a given direction & distance away from the
+    /// centre point.
     fn get_point_from(start: Point, dir: PointDirection, dist: i64, rev: bool) -> Option<Point> {
         let Point(col_i, row_i) = start;
         let PointDirection(col_d, row_d) = dir;
@@ -167,11 +183,13 @@ impl GameState<Player, Move, MoveError> for Game {
                 .board
                 .iter()
                 .zip(0..WIDTH) // Zip in index.
+                // Filter out the columns that have a piece in the top slot.
+                // Columns without a piece here are guaranteed to have space.
                 .filter(|(col, _)| match col.last() {
                     Some(None) => true,
                     _ => false,
                 })
-                .map(|(_, i)| i as Move)
+                .map(|(_, i)| i as Move) // Select the index of the column as the move.
                 .collect(),
         }
     }

@@ -1,6 +1,12 @@
 use std::fmt;
 
-/// Basic game info for MCTS to query game state.
+/// Basic game info for MCTS to query & update game state.
+///
+/// # Generics
+///
+/// * P - The player type.
+/// * M - The move type.
+/// * ME - The move error type.
 pub trait GameState<P, M, ME>: Clone + fmt::Display + fmt::Debug
 where
     P: Copy + PartialEq + ToString + fmt::Debug,

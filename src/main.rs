@@ -8,6 +8,7 @@ use mcts::{Mcts, SelectionPolicy};
 use std::fmt;
 use std::time::Duration;
 
+/// Runs a game where all players are AIs based on MCTS.
 fn do_ai_game<P, M, ME, S>(
     state: &mut S,
     players: Vec<P>,
