@@ -12,6 +12,7 @@ pub enum SelectionPolicy {
 }
 
 // TODO [mem]: Drop nodes that are no longer part of the game tree.
+#[derive(Clone)]
 struct Node<P, M, ME, S>
 where
     P: Copy + PartialEq + ToString + fmt::Debug,
@@ -112,6 +113,9 @@ where
         compute_limit: Duration,
         selection_pol: &SelectionPolicy,
     ) -> (M, u64) {
+        // Prune out nodes we don't need.
+        self.prune_nodes();
+
         let start = Instant::now();
         let mut rounds = 0;
         while Instant::now() - start < compute_limit {
@@ -176,6 +180,37 @@ where
         let id = self.tree.len();
         self.tree.push(node);
         id
+    }
+
+    fn prune_nodes(&mut self) -> () {
+        let mut cur_node = self.get_cur_node().clone();
+        cur_node.parent_node = None;
+        let mut n_tree = vec![cur_node];
+
+        // Recursively append children to new tree.
+        self.append_children_to(0, &mut n_tree);
+
+        // Once done, replace old tree & update current node.
+        self.tree = n_tree;
+        self.cur_node_id = 0;
+    }
+
+    fn append_children_to(&self, c_id: usize, n_tree: &mut Vec<Node<P, M, ME, S>>) {
+        let children = n_tree[c_id].child_nodes.clone();
+        let mut n_children = vec![];
+
+        for &child_id in children.iter() {
+            n_children.push(n_tree.len());
+            let mut child = self.get_node(child_id).clone();
+            child.parent_node = Some(c_id);
+            n_tree.push(child);
+        }
+
+        for &child_id in n_children.iter() {
+            self.append_children_to(child_id, n_tree);
+        }
+
+        n_tree[c_id].child_nodes = n_children;
     }
 
     // Phase fns.
