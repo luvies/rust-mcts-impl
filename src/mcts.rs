@@ -111,16 +111,18 @@ where
         &mut self,
         compute_limit: Duration,
         selection_pol: &SelectionPolicy,
-    ) -> M {
+    ) -> (M, u64) {
         let start = Instant::now();
+        let mut rounds = 0;
         while Instant::now() - start < compute_limit {
             let mut node = self.phase_selection(self.current_node_id, selection_pol);
             node = self.phase_expansion(node);
             let winner = self.phase_rollout(&self.get_node(node).state);
             self.phase_backprop(node, winner);
+            rounds += 1;
         }
 
-        self.phase_action_select()
+        (self.phase_action_select(), rounds)
     }
 
     // General helper fns.

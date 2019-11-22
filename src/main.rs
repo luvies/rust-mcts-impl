@@ -27,7 +27,7 @@ where
     println!("{}", state);
 
     while state.get_moves().len() > 0 {
-        let mv = ais[cur_ply].select_next_move(compute_limit, &selection_pol);
+        let (mv, rounds) = ais[cur_ply].select_next_move(compute_limit, &selection_pol);
         state.make_move(mv).unwrap();
 
         for i in 0..ais.len() {
@@ -38,7 +38,7 @@ where
             }
         }
 
-        println!("{}", state);
+        println!("{}\n{} rounds of MCTS", state, rounds);
 
         cur_ply += 1;
         cur_ply %= ais.len();
