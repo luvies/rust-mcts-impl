@@ -12,5 +12,7 @@ jobs:
           submodules: recursive
       - name: Lint
         run: cargo fmt -- --check --verbose
+      - name: Clippy
+        run: cargo clippy -- -D warnings
       - name: Build
         run: cargo build --verbose
