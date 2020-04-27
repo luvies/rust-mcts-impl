@@ -89,7 +89,7 @@ impl Game {
     }
 
     /// Updates the stored winner from the current board position.
-    fn update_winner_from(&mut self, col: usize, row: usize) -> () {
+    fn update_winner_from(&mut self, col: usize, row: usize) {
         if let Some(ply) = self.board[col][row] {
             for &dir in &[
                 PointDirection(1, 0),
@@ -139,15 +139,11 @@ impl Game {
         let c_d = col_d as i64 * dist;
         let r_d = row_d as i64 * dist;
 
-        let n_col: i64;
-        let n_row: i64;
-        if rev {
-            n_col = col_i as i64 - c_d;
-            n_row = row_i as i64 - r_d;
+        let (n_col, n_row) = if rev {
+            (col_i as i64 - c_d, row_i as i64 - r_d)
         } else {
-            n_col = col_i as i64 + c_d;
-            n_row = row_i as i64 + r_d;
-        }
+            (col_i as i64 + c_d, row_i as i64 + r_d)
+        };
 
         if n_col >= 0 && n_col < WIDTH as i64 && n_row >= 0 && n_row < HEIGHT as i64 {
             Some(Point(n_col as usize, n_row as usize))
@@ -164,7 +160,7 @@ impl GameState<Player, Move, MoveError> for Game {
             return Err(MoveError::OutOfRange(mv));
         }
 
-        let ref mut col = self.board[col_i];
+        let col = &mut self.board[col_i];
         match col.iter().position(|&cell| cell == None) {
             Some(row_i) => {
                 col[row_i] = Some(self.turn);

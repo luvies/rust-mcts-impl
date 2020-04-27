@@ -1,11 +1,12 @@
 use crate::game::GameState;
 use rand::seq::SliceRandom;
+use std::f64::consts::SQRT_2;
 use std::fmt;
 use std::marker::PhantomData;
 use std::time::{Duration, Instant};
 
 // Default UBC1 exploration constant. Equals sqrt(2).
-pub const UCB1_DEFAULT_EXPLORE_CONST: f64 = 1.41421356237309504880168872420;
+pub const UCB1_DEFAULT_EXPLORE_CONST: f64 = SQRT_2;
 
 pub enum SelectionPolicy {
     Ucb1(Option<f64>),
@@ -64,16 +65,16 @@ where
     /// Returns whether this node is fully expanded or not.
     /// If false, then more children can be added.
     pub fn is_fully_expanded(&self) -> bool {
-        self.untried_mvs.len() == 0
+        self.untried_mvs.is_empty()
     }
 
     /// Returns whether this node has any children.
     pub fn has_children(&self) -> bool {
-        self.child_nodes.len() != 0
+        !self.child_nodes.is_empty()
     }
 
     /// Updates the visits & wins counts based on the given winner.
-    pub fn update(&mut self, winner: Option<P>) -> () {
+    pub fn update(&mut self, winner: Option<P>) {
         self.visits += 1;
 
         if let Some(wnr) = winner {
@@ -118,12 +119,12 @@ where
     }
 
     /// Updates the root node to reflect an opponent's move.
-    pub fn update_opponent_move(&mut self, mv: M) -> () {
+    pub fn update_opponent_move(&mut self, mv: M) {
         self.update_move(mv, false);
     }
 
     /// Updates the root node to reflect the target player's move.
-    pub fn update_target_move(&mut self, mv: M) -> () {
+    pub fn update_target_move(&mut self, mv: M) {
         self.update_move(mv, true);
     }
 
@@ -155,7 +156,7 @@ where
 
     /// Updates the root node to match to move that was performed. Does some
     /// quality-of-life checks to ensure we are working with the right player.
-    fn update_move(&mut self, mv: M, for_target_player: bool) -> () {
+    fn update_move(&mut self, mv: M, for_target_player: bool) {
         let tgt = self.target_player;
         let node = self.get_cur_node();
 
@@ -221,7 +222,7 @@ where
     /// This method will make a complete copy of the node tree with only the
     /// required nodes in, meaning that it shouldn't be done in time-critical
     /// sections.
-    fn prune_nodes(&mut self) -> () {
+    fn prune_nodes(&mut self) {
         let mut cur_node = self.get_cur_node().clone();
         cur_node.parent_node = None;
         let mut n_tree = vec![cur_node];
@@ -313,7 +314,7 @@ where
 
     /// Backprop phase of MCTS. Updates the current node and all parents with
     /// the winner of the rollout phase.
-    fn phase_backprop(&mut self, node_id: usize, winner: Option<P>) -> () {
+    fn phase_backprop(&mut self, node_id: usize, winner: Option<P>) {
         let mut current_node = self.get_node_mut(node_id);
         loop {
             current_node.update(winner);

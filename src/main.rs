@@ -14,8 +14,7 @@ fn do_ai_game<P, M, ME, S>(
     players: Vec<P>,
     compute_limit: Duration,
     selection_pol: SelectionPolicy,
-) -> ()
-where
+) where
     P: Copy + PartialEq + ToString + fmt::Debug,
     M: Copy + PartialEq + fmt::Debug,
     ME: Copy + fmt::Debug,
@@ -27,15 +26,15 @@ where
 
     println!("{}", state);
 
-    while state.get_moves().len() > 0 {
+    while !state.get_moves().is_empty() {
         let (mv, rounds) = ais[cur_ply].select_next_move(compute_limit, &selection_pol);
         state.make_move(mv).unwrap();
 
-        for i in 0..ais.len() {
+        for (i, ai) in ais.iter_mut().enumerate() {
             if i == cur_ply {
-                ais[i].update_target_move(mv);
+                ai.update_target_move(mv);
             } else {
-                ais[i].update_opponent_move(mv);
+                ai.update_opponent_move(mv);
             }
         }
 
